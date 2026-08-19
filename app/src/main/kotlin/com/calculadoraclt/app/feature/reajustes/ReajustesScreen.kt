@@ -22,6 +22,7 @@ import com.calculadoraclt.app.ads.BannerAdView
 import com.calculadoraclt.common.format.formatMoeda
 import com.calculadoraclt.designsystem.component.CltDateField
 import com.calculadoraclt.designsystem.component.CurrencyTextField
+import com.calculadoraclt.designsystem.component.LegalDisclaimerBanner
 import com.calculadoraclt.designsystem.component.PercentTextField
 import com.calculadoraclt.designsystem.component.ResultLine
 import com.calculadoraclt.designsystem.component.ResultSummaryCard
@@ -85,6 +86,7 @@ fun ReajustesScreen(
                     }
                 }
                 ResultSummaryCard(titulo = "Resultado", linhas = linhas)
+                LegalDisclaimerBanner()
             }
         }
     }

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.util.Date
 
 private const val VALIDADE_ANUNCIO_MS = 4 * 60 * 60 * 1000L
+private const val INTERVALO_MINIMO_ENTRE_EXIBICOES_MS = 5 * 60 * 1000L
 
 enum class LaunchAdUiState {
     OCULTO,
@@ -30,6 +31,10 @@ enum class LaunchAdUiState {
  *
  * Política do AdMob para este formato exige uma tela de introdução com opção de pular
  * ANTES do anúncio começar (ver [LaunchAdUiState.MOSTRANDO_INTRODUCAO] + AdIntroOverlay.kt).
+ *
+ * Respeita um intervalo mínimo entre exibições ([INTERVALO_MINIMO_ENTRE_EXIBICOES_MS]) para não
+ * mostrar o anúncio a cada troca rápida de app (ex: usuário sai e volta em poucos segundos) —
+ * frequência excessiva de anúncios em tela cheia viola as políticas de conteúdo do Google Play.
  */
 class LaunchAdManager(
     private val application: Application,
@@ -40,6 +45,7 @@ class LaunchAdManager(
     private var isLoadingAd = false
     private var isShowingAd = false
     private var currentActivity: Activity? = null
+    private var ultimaExibicaoEm: Long = 0L
 
     private val _uiState = MutableStateFlow(LaunchAdUiState.OCULTO)
     val uiState: StateFlow<LaunchAdUiState> = _uiState.asStateFlow()
@@ -112,7 +118,9 @@ class LaunchAdManager(
 
     override fun onStart(owner: LifecycleOwner) {
         if (isShowingAd) return
-        if (isAdAvailable()) {
+        val passouIntervaloMinimo = Date().time - ultimaExibicaoEm >= INTERVALO_MINIMO_ENTRE_EXIBICOES_MS
+        if (isAdAvailable() && passouIntervaloMinimo) {
+            ultimaExibicaoEm = Date().time
             _uiState.value = LaunchAdUiState.MOSTRANDO_INTRODUCAO
         } else {
             loadAd()

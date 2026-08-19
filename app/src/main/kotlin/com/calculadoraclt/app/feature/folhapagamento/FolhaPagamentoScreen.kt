@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.calculadoraclt.app.ads.BannerAdView
 import com.calculadoraclt.common.format.formatMoeda
 import com.calculadoraclt.designsystem.component.CurrencyTextField
+import com.calculadoraclt.designsystem.component.LegalDisclaimerBanner
 import com.calculadoraclt.designsystem.component.ResultLine
 import com.calculadoraclt.designsystem.component.ResultSummaryCard
 
@@ -116,6 +117,7 @@ fun FolhaPagamentoScreen(
                         ResultLine("Custo total para a empresa", resultado.custoTotalEmpresa.formatMoeda(), destaque = true),
                     ),
                 )
+                LegalDisclaimerBanner()
             }
         }
     }
