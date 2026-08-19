@@ -1,0 +1,23 @@
+*.iml
+.gradle/
+.claude/
+/local.properties
+local.properties
+.idea/
+.DS_Store
+**/build/
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+
+# Assinatura e segredos — nunca versionar
+*.keystore
+*.jks
+release.keystore
+*.p12
+service-account*.json
+google-services.json
+*.env
+.env
