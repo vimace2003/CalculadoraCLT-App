@@ -10,5 +10,5 @@ package com.calculadoraclt.app.ads
  */
 object AdIds {
     const val BANNER = "ca-app-pub-3940256099942544/6300978111"
-    const val REWARDED_INTERSTITIAL = "ca-app-pub-3940256099942544/5354046379"
+    const val INTERSTITIAL = "ca-app-pub-3940256099942544/1033173712"
 }

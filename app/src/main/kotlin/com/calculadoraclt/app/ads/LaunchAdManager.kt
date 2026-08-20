@@ -9,46 +9,34 @@ import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
-import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import java.util.Date
 
 private const val VALIDADE_ANUNCIO_MS = 4 * 60 * 60 * 1000L
 private const val INTERVALO_MINIMO_ENTRE_EXIBICOES_MS = 5 * 60 * 1000L
 
-enum class LaunchAdUiState {
-    OCULTO,
-    MOSTRANDO_INTRODUCAO,
-}
-
 /**
- * Mostra um anúncio Rewarded Interstitial ao abrir o app / voltar do background.
- * Esse formato é o indicado pelo AdMob para "assistir por alguns segundos antes de
- * poder pular": a própria rede libera o botão de fechar só depois de um tempo mínimo.
+ * Mostra um anúncio Interstitial (tela cheia) ao abrir o app / voltar do background,
+ * sem nenhuma tela de escolha antes — o anúncio aparece direto e só pode ser fechado
+ * quando a própria rede libera o botão de fechar (alguns segundos após o início).
  *
- * Política do AdMob para este formato exige uma tela de introdução com opção de pular
- * ANTES do anúncio começar (ver [LaunchAdUiState.MOSTRANDO_INTRODUCAO] + AdIntroOverlay.kt).
- *
- * Respeita um intervalo mínimo entre exibições ([INTERVALO_MINIMO_ENTRE_EXIBICOES_MS]) para não
- * mostrar o anúncio a cada troca rápida de app (ex: usuário sai e volta em poucos segundos) —
- * frequência excessiva de anúncios em tela cheia viola as políticas de conteúdo do Google Play.
+ * Diferente do Rewarded Interstitial (formato usado antes), o Interstitial padrão não tem
+ * exigência de tela de introdução com opção de pular — essa exigência do AdMob é específica
+ * de formatos "recompensados". Ainda assim, respeita um intervalo mínimo entre exibições
+ * ([INTERVALO_MINIMO_ENTRE_EXIBICOES_MS]) para não repetir o anúncio a cada troca rápida de
+ * app, o que contaria como frequência abusiva pelas políticas de conteúdo do Google Play.
  */
 class LaunchAdManager(
     private val application: Application,
 ) : Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
 
-    private var rewardedInterstitialAd: RewardedInterstitialAd? = null
+    private var interstitialAd: InterstitialAd? = null
     private var loadTime: Long = 0L
     private var isLoadingAd = false
     private var isShowingAd = false
     private var currentActivity: Activity? = null
     private var ultimaExibicaoEm: Long = 0L
-
-    private val _uiState = MutableStateFlow(LaunchAdUiState.OCULTO)
-    val uiState: StateFlow<LaunchAdUiState> = _uiState.asStateFlow()
 
     init {
         application.registerActivityLifecycleCallbacks(this)
@@ -57,13 +45,13 @@ class LaunchAdManager(
     fun loadAd() {
         if (isLoadingAd || isAdAvailable()) return
         isLoadingAd = true
-        RewardedInterstitialAd.load(
+        InterstitialAd.load(
             application,
-            AdIds.REWARDED_INTERSTITIAL,
+            AdIds.INTERSTITIAL,
             AdRequest.Builder().build(),
-            object : RewardedInterstitialAdLoadCallback() {
-                override fun onAdLoaded(ad: RewardedInterstitialAd) {
-                    rewardedInterstitialAd = ad
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(ad: InterstitialAd) {
+                    interstitialAd = ad
                     isLoadingAd = false
                     loadTime = Date().time
                 }
@@ -76,52 +64,40 @@ class LaunchAdManager(
     }
 
     private fun isAdAvailable(): Boolean {
-        rewardedInterstitialAd ?: return false
+        interstitialAd ?: return false
         return Date().time - loadTime < VALIDADE_ANUNCIO_MS
     }
 
-    /** Chamado pela UI quando o usuário decide assistir ao anúncio na tela de introdução. */
-    fun onUsuarioAceitouAssistir() {
-        val activity = currentActivity
-        val ad = rewardedInterstitialAd
-        if (activity == null || ad == null) {
-            _uiState.value = LaunchAdUiState.OCULTO
-            return
-        }
+    private fun mostrarAnuncio() {
+        val activity = currentActivity ?: return
+        val ad = interstitialAd ?: return
 
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
-                rewardedInterstitialAd = null
+                interstitialAd = null
                 isShowingAd = false
-                _uiState.value = LaunchAdUiState.OCULTO
                 loadAd()
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                rewardedInterstitialAd = null
+                interstitialAd = null
                 isShowingAd = false
-                _uiState.value = LaunchAdUiState.OCULTO
                 loadAd()
             }
 
             override fun onAdShowedFullScreenContent() {
                 isShowingAd = true
+                ultimaExibicaoEm = Date().time
             }
         }
-        ad.show(activity) { /* recompensa ignorada: não há economia de créditos no app */ }
-    }
-
-    /** Chamado pela UI quando o usuário toca em "Pular" na tela de introdução. */
-    fun onUsuarioPulou() {
-        _uiState.value = LaunchAdUiState.OCULTO
+        ad.show(activity)
     }
 
     override fun onStart(owner: LifecycleOwner) {
         if (isShowingAd) return
         val passouIntervaloMinimo = Date().time - ultimaExibicaoEm >= INTERVALO_MINIMO_ENTRE_EXIBICOES_MS
         if (isAdAvailable() && passouIntervaloMinimo) {
-            ultimaExibicaoEm = Date().time
-            _uiState.value = LaunchAdUiState.MOSTRANDO_INTRODUCAO
+            mostrarAnuncio()
         } else {
             loadAd()
         }
