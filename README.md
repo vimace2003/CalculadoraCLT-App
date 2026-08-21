@@ -27,7 +27,7 @@ A conta AdMob já está configurada. `app/src/main/kotlin/com/calculadoraclt/app
 Há dois workflows em `.github/workflows/`:
 
 - **`ci.yml`** — roda testes e compila um APK de debug em toda branch/PR (exceto `main`). Não precisa de nenhuma configuração adicional.
-- **`release.yml`** — a cada push na `main`, roda os testes e, se habilitado, gera um Android App Bundle assinado e publica na Play Store (faixa **internal testing**).
+- **`release.yml`** — a cada push na `main`, roda os testes e, se habilitado, gera um APK e um Android App Bundle assinados, publica na Play Store (faixa **internal testing**) e também cria uma release no GitHub (aba **Releases** do repositório) anexando o APK e o AAB, com a tag `build-<número da execução>`.
 
 O job de publicação fica **desativado por padrão** (só roda testes) até você configurar os itens abaixo — assim um push na `main` sem essa configuração não falha, só pula a publicação.
 
