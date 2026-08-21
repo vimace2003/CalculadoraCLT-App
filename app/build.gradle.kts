@@ -14,6 +14,10 @@ android {
         targetSdk = 36
         versionCode = (System.getenv("ANDROID_VERSION_CODE")?.toIntOrNull()) ?: 1
         versionName = System.getenv("ANDROID_VERSION_NAME") ?: "1.0.0"
+
+        // App ID de TESTE do AdMob por padrão (debug, CI, etc.) — o build de release
+        // sobrescreve com o App ID real (ver buildTypes.release abaixo).
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
     }
 
     val hasCiSigningConfig = System.getenv("CI_KEYSTORE_PATH") != null
@@ -37,6 +41,7 @@ android {
             if (hasCiSigningConfig) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-6996977326182038~2706116970"
         }
     }
 
@@ -47,6 +52,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

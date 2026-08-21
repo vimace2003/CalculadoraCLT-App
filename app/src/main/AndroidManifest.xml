@@ -14,11 +14,10 @@
         android:fullBackupContent="@xml/backup_rules"
         android:supportsRtl="true">
 
-        <!-- App ID de TESTE do AdMob (oficial do Google). Trocar pelo App ID real
-             da sua conta AdMob antes de publicar na Play Store. -->
+        <!-- App ID do AdMob: de teste em debug, real em release (ver app/build.gradle.kts). -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="${admobAppId}" />
 
         <activity
             android:name=".MainActivity"
