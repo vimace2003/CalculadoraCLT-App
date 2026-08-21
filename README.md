@@ -20,7 +20,7 @@ Requer JDK 17 e Android SDK (compileSdk 36). Com o `local.properties` apontando 
 
 ## Anúncios (AdMob)
 
-Os IDs em `app/src/main/kotlin/com/calculadoraclt/app/ads/AdIds.kt` e o App ID no `AndroidManifest.xml` são os **IDs de teste oficiais do Google** — funcionam para desenvolvimento mas não geram receita real. Antes de publicar, crie uma conta em [admob.google.com](https://admob.google.com), cadastre o app e troque esses valores pelos seus IDs reais.
+A conta AdMob já está configurada. `app/src/main/kotlin/com/calculadoraclt/app/ads/AdIds.kt` e o placeholder `admobAppId` em `app/build.gradle.kts` usam os **IDs de teste oficiais do Google em builds de debug** e os **IDs reais só em builds de release** (`./gradlew :app:assembleRelease` ou `:app:bundleRelease`). Isso evita que testes no dia a dia (emulador, abrir o app várias vezes) gerem tráfego suspeito na conta real — só instale um APK/AAB de release no seu próprio celular se ele estiver registrado como [dispositivo de teste](https://support.google.com/admob/answer/9691433) no AdMob, senão evite clicar nos anúncios.
 
 ## Configurar o CI/CD (GitHub Actions)
 
