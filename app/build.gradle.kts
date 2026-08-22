@@ -42,6 +42,11 @@ android {
                 signingConfig = signingConfigs.getByName("release")
             }
             manifestPlaceholders["admobAppId"] = "ca-app-pub-6996977326182038~2706116970"
+            // Empacota os simbolos de depuracao nativos (de bibliotecas .so de terceiros,
+            // ex: Play Services/AdMob) direto no AAB, sem precisar de upload manual no Console.
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
         }
     }
 
